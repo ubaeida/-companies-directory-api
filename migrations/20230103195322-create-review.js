@@ -1,24 +1,27 @@
 'use strict';
+/** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Admins', {
+    await queryInterface.createTable('Reviews', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER.UNSIGNED
       },
-      name: {
-        type: Sequelize.STRING(100),
-        allowNull: false,
+      userId: {
+        type: Sequelize.INTEGER.UNSIGNED
       },
-      email: {
-        type: Sequelize.STRING,
-        allowNull: false,
+      companyId: {
+        type: Sequelize.INTEGER.UNSIGNED
       },
-      password: {
+      comment: {
         type: Sequelize.STRING,
-        allowNull: false,
+        allowNull: false
+      },
+      rate: {
+        type: Sequelize.TINYINT(1).UNSIGNED,
+        allowNull: false
       },
       createdAt: {
         allowNull: false,
@@ -31,6 +34,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Admins');
+    await queryInterface.dropTable('Reviews');
   }
 };

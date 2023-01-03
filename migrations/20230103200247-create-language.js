@@ -1,7 +1,8 @@
 'use strict';
+/** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Admins', {
+    await queryInterface.createTable('Languages', {
       id: {
         allowNull: false,
         autoIncrement: true,
@@ -9,16 +10,17 @@ module.exports = {
         type: Sequelize.INTEGER.UNSIGNED
       },
       name: {
-        type: Sequelize.STRING(100),
-        allowNull: false,
-      },
-      email: {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      password: {
+      code: {
         type: Sequelize.STRING,
         allowNull: false,
+      },
+      direction: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: 1
       },
       createdAt: {
         allowNull: false,
@@ -31,6 +33,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Admins');
+    await queryInterface.dropTable('Languages');
   }
 };
