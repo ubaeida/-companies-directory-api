@@ -16,6 +16,7 @@ module.exports = {
       code: {
         type: Sequelize.STRING,
         allowNull: false,
+        unique: true,
       },
       direction: {
         type: Sequelize.BOOLEAN,
