@@ -1,7 +1,7 @@
 const models = require('../models')
 const { hashPassword, verifyPassword } = require('../services/passwordService')
 const { validateName, validateEmail, validatePassword } = require("../services/validationService")
-const { userTransformer } = require('../transformers/user')
+const { adminTransformer } = require('../transformers/admin')
 
 const store = async (req, res, next) => {
     const result = {
@@ -9,7 +9,7 @@ const store = async (req, res, next) => {
         data: null,
         messages: []
     }
-    const { name = '', email = '', password = '' } = req.body
+    const { name = '', email = '', password = '', phone = null } = req.body
     // Validation
     if (!validateName(name)) {
         result.success = false
@@ -30,17 +30,18 @@ const store = async (req, res, next) => {
     }
     // validation passed
     // Store in database
-    const [user, created] = await models.User.findOrCreate({
+    const [admin, created] = await models.Admin.findOrCreate({
         where: {
             email
         },
         defaults: {
             name,
-            password: hashPassword(password)
+            password: hashPassword(password),
+            phone
         }
     })
     if (created) {
-        result.messages.push('User created successfully')
+        result.messages.push('Admin created successfully')
     } else {
         result.success = false
         result.messages.push('You are already registered')
@@ -68,15 +69,15 @@ const login = async (req, res, next) => {
         res.send(result)
         return
     }
-    // Validation passed - get the user
-    const user = await models.User.findOne({
+    // Validation passed - get the admin
+    const admin = await models.Admin.findOne({
         where: {
             email,
         }
     })
-    if (user) {
-        if (verifyPassword(password, user.password)) {
-            result.data = userTransformer(user)
+    if (admin) {
+        if (verifyPassword(password, admin.password)) {
+            result.data = adminTransformer(admin)
             result.messages.push('Logged in successfully')
             // send token - later
         } else {
