@@ -1,4 +1,5 @@
 const models = require('../models')
+const { getInstanceById } = require('../services/modelService')
 const { validateName } = require('../services/validationService')
 
 const store = async (req, res, next) => {
@@ -64,42 +65,30 @@ const show = async (req, res, next) => {
 }
 const update = async (req, res, next) => {
     const result = {
-        success: true,
+        success: false,
         data: null,
         messages: []
     }
-    const id = +req.params.id
     const { name = '' } = req.body
-    if (typeof id === 'number' && id > 0) {
-        const province = await models.Province.findByPk(id)
-        if (province) {
-            if (!validateName(name)) {
-                result.success = false
-                result.messages.push('Please enter a valid province name')
-            } else {
-                // everything is fine
-
-                // province.name = name
-                // await province.save()
-                await province.update({
-                    name
-                })
-                result.data = province
-                result.messages.push('Province updated successfully')
-            }
+    const item = getInstanceById(req.params.id, 'Province')
+    if (item.success) {
+        if (!validateName(name)) {
+            result.messages.push('Please enter a valid province name')
         } else {
-            res.status(404)
-            result.success = false
-            result.messages.push('Province not found')
+            result.success = true
+            await item.instance.update({
+                name
+            })
+            result.data = item.instance
+            result.messages.push('Province updated successfully')
         }
     } else {
-        res.status(422)
-        result.success = false
-        result.messages.push('Please provide a valid id')
+        result.messages = [...item.messages]
     }
+    res.status(item.status)
     return res.send(result)
 }
-
+/*
 const destroy = async (req, res, next) => {
     const result = {
         success: true,
@@ -124,6 +113,26 @@ const destroy = async (req, res, next) => {
     }
     return res.send(result)
 }
+*/
+
+const destroy = async (req, res, next) => {
+    const result = {
+        success: false,
+        data: null,
+        messages: []
+    }
+    const item = await getInstanceById(req.params.id, 'Province')
+    if (item.success) {
+        result.success = true
+        await item.instance.destroy()
+        result.messages.push('Province deleted successfully')
+    } else {
+        result.messages = [...item.messages]
+    }
+    res.status(item.status)
+    return res.send(result)
+}
+
 module.exports = {
     store,
     index,
