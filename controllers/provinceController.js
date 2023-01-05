@@ -37,7 +37,12 @@ const index = async (req, res, next) => {
         data: null,
         messages: []
     }
-    const provinces = await models.Province.findAll()
+    const provinces = await models.Province.findAll({
+        // eager loading: bring all data together (province + its cities)
+        include: [
+            models.City
+        ]
+    })
     result.data = provinces
     return res.send(result)
 }
@@ -50,7 +55,10 @@ const show = async (req, res, next) => {
     const item = await getInstanceById(req.params.id, 'Province')
     if (item.success) {
         result.success = true
-        result.data = item.instance
+        result.data = item.instance.dataValues
+        // lazy load cities from province instance
+        result.data.Cities = await item.instance.getCities({raw: true})
+        
     }
     result.messages = [...item.messages]
     res.status(item.status)
