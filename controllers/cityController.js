@@ -43,7 +43,11 @@ const index = async (req, res, next) => {
         data: null,
         messages: []
     }
-    const cities = await models.City.findAll()
+    const cities = await models.City.findAll({
+        include: [
+            models.Province
+        ]
+    })
     result.data = cities
     return res.send(result)
 }
