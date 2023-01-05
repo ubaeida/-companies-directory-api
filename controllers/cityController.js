@@ -60,7 +60,8 @@ const show = async (req, res, next) => {
     const item = await getInstanceById(req.params.id, 'City')
     if (item.success) {
         result.success = true
-        result.data = item.instance
+        result.data = item.instance.dataValues
+        result.data.Province = await item.instance.getProvince({raw: true})
     }
     result.messages = [...item.messages]
     res.status(item.status)
