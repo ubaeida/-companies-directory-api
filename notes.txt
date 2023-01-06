@@ -1,0 +1,6 @@
+users [index, show,update, destroy]
+ad [index, show,update, destroy, store]
+article [index, show,update, destroy, store]
+Language [index, show,update, destroy, store]
+review [index, show,update, destroy, store]
+company hide the password

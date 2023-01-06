@@ -11,6 +11,7 @@ const store = async (req, res, next) => {
     const { name = '', provinceId = null } = req.body
     // Validation
     if (!validateName(name)) {
+        res.status(result.status)
         result.success = false
         result.messages.push('Please enter a valid city name')
     }

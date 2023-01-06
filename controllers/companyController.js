@@ -6,6 +6,7 @@ const {
   validatePassword,
 } = require("../services/validationService");
 const { companyTransformer } = require("../transformers/company");
+const { getInstanceById } = require("../services/modelService");
 
 const store = async (req, res) => {
   const result = {
@@ -98,7 +99,113 @@ const login = async (req, res) => {
   return res.send(result);
 };
 
+const index = async (req, res, next) => {
+  const result = {
+    success: true,
+    data: null,
+    messages: [],
+  };
+  const companies = await models.Company.findAll({
+    include: [models.Province, models.City, models.Category],
+  });
+  result.data = companies;
+  return res.send(result);
+};
+
+const update = async (req, res, next) => {
+  const result = {
+    success: false,
+    data: null,
+    messages: [],
+  };
+  const {
+    name = "",
+    email = "",
+    password = "",
+    cityId = null,
+    categoryId = null,
+    provinceId = null,
+  } = req.body;
+  const province = await getInstanceById(provinceId, "Province");
+  const city = await getInstanceById(cityId, "City");
+  const category = await getInstanceById(categoryId, "Category");
+  const item = await getInstanceById(req.params.id, "Company");
+  if (!province.success) {
+    item.status = 422;
+    result.messages.push("Please enter a valid province id");
+  } else if (!city.success) {
+    item.status = 422;
+    result.messages.push("Please enter a valid city id");
+  } else if (!category.success) {
+    item.status = 422;
+    result.messages.push("Please enter a valid category id");
+  } else {
+    if (item.success) {
+      if (!validateName(name)) {
+        item.status = 422;
+        result.messages.push("Please enter a valid company name");
+      } else {
+        result.success = true;
+        await item.instance.update({
+          name,
+          email,
+          password: hashPassword(password),
+          categoryId,
+          provinceId,
+          cityId,
+        });
+        result.data = companyTransformer(item.instance);
+        result.messages.push("Company updated successfully");
+      }
+    } else {
+      result.messages = [...item.messages];
+    }
+  }
+  res.status(item.status);
+  return res.send(result);
+};
+const destroy = async (req, res, next) => {
+  const result = {
+    success: false,
+    data: null,
+    messages: [],
+  };
+  const item = await getInstanceById(req.params.id, "Company");
+  if (item.success) {
+    result.success = true;
+    await item.instance.destroy();
+    result.messages.push("Company deleted successfully");
+  } else {
+    result.messages = [...item.messages];
+  }
+  res.status(item.status);
+  return res.send(result);
+};
+const show = async (req, res, next) => {
+  const result = {
+    success: false,
+    data: null,
+    messages: [],
+  };
+  const item = await getInstanceById(req.params.id, "Company");
+  if (item.success) {
+    result.success = true;
+    result.data =  item.instance.dataValues;
+    result.data.Province = await item.instance.getProvince({ raw: true });
+    result.data.City = await item.instance.getCity({ raw: true });
+    result.data.Category = await item.instance.getCategory({ raw: true });
+
+  }
+  result.messages = [...item.messages];
+  res.status(item.status);
+  return res.send(result);
+};
+
 module.exports = {
   store,
   login,
+  index,
+  update,
+  destroy,
+  show
 };

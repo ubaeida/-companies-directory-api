@@ -1,9 +1,8 @@
 var express = require("express");
-const {store, login, index, update, destroy, show} = require("../controllers/adminController");
+const {store, index, update, destroy, show} = require("../controllers/categoryController");
 var router = express.Router();
 
-router.post("/register", store);
-router.post("/login", login);
+router.post("/", store);
 router.get("/", index);
 router.put("/:id", update);
 router.delete("/:id", destroy);
