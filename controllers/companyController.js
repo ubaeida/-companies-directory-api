@@ -5,7 +5,7 @@ const {
   validateName,
   validatePassword,
 } = require("../services/validationService");
-const { companyTransformer } = require("../transformers/company");
+const { companyTransformer, companiesTransformer } = require("../transformers/company");
 const { getInstanceById } = require("../services/modelService");
 
 const store = async (req, res) => {
@@ -108,7 +108,7 @@ const index = async (req, res, next) => {
   const companies = await models.Company.findAll({
     include: [models.Province, models.City, models.Category],
   });
-  result.data = companies;
+  result.data = companiesTransformer(companies);
   return res.send(result);
 };
 

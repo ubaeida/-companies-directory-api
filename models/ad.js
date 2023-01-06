@@ -11,6 +11,9 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+      Ad.belongsTo(models.Company, { 
+        foreignKey: 'companyId'
+      })
     }
   }
   Ad.init({

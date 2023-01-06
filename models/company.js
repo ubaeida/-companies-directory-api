@@ -18,6 +18,15 @@ module.exports = (sequelize, DataTypes) => {
       Company.belongsTo(models.City, {
         foreignKey: "cityId",
       });
+      Company.hasMany(models.Article, { 
+        foreignKey: 'companyId'
+      })
+      Company.hasMany(models.Review, { 
+        foreignKey: 'companyId'
+      })
+      Company.hasMany(models.Ad, { 
+        foreignKey: 'companyId'
+      })
     }
   }
   Company.init(

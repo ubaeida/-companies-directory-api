@@ -4,7 +4,10 @@ const companyTransformer = (company) => {
     }
     return company
 }
-
+const companiesTransformer = (companies) => { 
+    return companies.map((companey) => companyTransformer(companey))
+}
 module.exports = {
-    companyTransformer
+    companyTransformer,
+    companiesTransformer
 }

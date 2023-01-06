@@ -9,16 +9,6 @@ const store = async (req, res, next) => {
     messages: [],
   };
   const { name = "", description = "", icon = "" } = req.body;
-  // Validation
-  if (!validateName(name)) {
-    result.success = false;
-    result.messages.push("Please enter a valid category name");
-  }
-  if (!result.success) {
-    // validation failed
-    res.send(result);
-    return;
-  }
   const category = await models.Category.create({
     name,
     description,
