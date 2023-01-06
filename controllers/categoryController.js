@@ -8,11 +8,10 @@ const store = async (req, res, next) => {
     data: null,
     messages: [],
   };
-  const { name = "", description = "", icon = "" } = req.body;
   const category = await models.Category.create({
-    name,
-    description,
-    icon,
+    name: req.body.name,
+    description: req.body.description,
+    icon: req.file.filename,
   });
   if (category) {
     result.data = category;
@@ -39,7 +38,7 @@ const update = async (req, res, next) => {
     data: null,
     messages: [],
   };
-  const { name = "", description = "", icon = ""  } = req.body;
+  const { name = "", description = "", icon = "" } = req.body;
   const item = await getInstanceById(req.params.id, "Category");
   if (item.success) {
     if (!validateName(name)) {
@@ -49,7 +48,7 @@ const update = async (req, res, next) => {
       await item.instance.update({
         name,
         description,
-        icon
+        icon,
       });
       result.data = item.instance;
       result.messages.push("Category updated successfully");
