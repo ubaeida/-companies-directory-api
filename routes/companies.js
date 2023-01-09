@@ -1,21 +1,28 @@
 var express = require("express");
 var router = express.Router();
-var {
-  store,
-  login,
-  index,
-  update,
-  destroy,
-  show,
-} = require("../controllers/companyController");
+const { store } = require("../controllers/companyController1");
+const {
+  nameValidation,
+  emailValidation,
+  passwordValidation,
+  logoValdation,
+  bannerValdation,
+  addressValdation
+} = require("../services/validationService");
+const { isAuth } = require("../middlewares/isAuth");
+const { upload } = require("../storage/storage");
 
-/* GET users listing. */
-router.post("/register", store);
-router.post("/login", login);
-router.get("/", index);
-router.put("/:id", update);
-router.delete("/:id", destroy);
-router.get("/:id", show);
-
+router.post(
+  "/register",
+  upload.single("logo"),
+  logoValdation,
+  upload.single("banner"),
+  bannerValdation,
+  nameValidation,
+  emailValidation,
+  passwordValidation,
+  addressValdation,
+  store
+);
 
 module.exports = router;

@@ -1,6 +1,9 @@
 const models = require("../models");
 const { getInstanceById } = require("../services/modelService");
 const { validateName } = require("../services/validationService");
+const { validationResult } = require('express-validator');
+
+const { categoryTransformer, categoriesTransformer } = require("../transformers/categoryTransformer");
 
 const store = async (req, res, next) => {
   const result = {
@@ -8,13 +11,21 @@ const store = async (req, res, next) => {
     data: null,
     messages: [],
   };
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    errors.array().forEach((error) => {
+        result.messages.push(`${error.param} - ${error.msg}`)
+    })
+    result.success = false
+    return res.send(result)
+  }
   const category = await models.Category.create({
     name: req.body.name,
     description: req.body.description,
-    icon: req.file.filename,
+    icon: req?.file?.filename,
   });
   if (category) {
-    result.data = category;
+    result.data = categoryTransformer(category);
     result.messages.push("Category created successfully");
   } else {
     result.success = false;
@@ -29,7 +40,7 @@ const index = async (req, res, next) => {
     messages: [],
   };
   const categories = await models.Category.findAll();
-  result.data = categories;
+  result.data = categoriesTransformer( categories);
   return res.send(result);
 };
 const update = async (req, res, next) => {
@@ -50,7 +61,7 @@ const update = async (req, res, next) => {
         description,
         icon,
       });
-      result.data = item.instance;
+      result.data = categoryTransformer(item.instance);
       result.messages.push("Category updated successfully");
     }
   } else {
@@ -68,7 +79,7 @@ const show = async (req, res, next) => {
   const item = await getInstanceById(req.params.id, "Category");
   if (item.success) {
     result.success = true;
-    result.data = item.instance.dataValues;
+    result.data = categoryTransformer(item.instance.dataValues);
   }
   result.messages = [...item.messages];
   res.status(item.status);
