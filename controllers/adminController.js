@@ -1,5 +1,8 @@
 const models = require("../models");
-const { adminTransformer, adminsTransformer, } = require("../transformers/admin");
+const {
+  adminTransformer,
+  adminsTransformer,
+} = require("../transformers/admin");
 const { getInstanceById } = require("../services/modelService");
 const { hashPassword, verifyPassword } = require("../services/passwordService");
 const { getToken, verifyToken } = require("../services/tokenService");
@@ -77,28 +80,20 @@ const update = async (req, res, next) => {
     data: null,
     messages: [],
   };
-  const token = req?.headers?.authorization.split(" ");
-  const adminId = verifyToken(token[token.length - 1]).id;
   const { name, email, password, phone = "" } = req.body;
-  if (req.params.id == adminId) {
-    const item = await getInstanceById(req.params.id, "Admin");
-    if (item.success) {
-      await item.instance.update({
-        name,
-        email,
-        password: hashPassword(password),
-        phone,
-      });
-      httpResponse.data = adminTransformer(item.instance);
-      httpResponse.messages.push("Admin updated successfully");
-    } else {
-      httpResponse.messages = [...item.messages];
-      res.status(item.status);
-    }
+  const item = await getInstanceById(req.params.id, "Admin");
+  if (item.success) {
+    await item.instance.update({
+      name,
+      email,
+      password: hashPassword(password),
+      phone,
+    });
+    httpResponse.data = adminTransformer(item.instance);
+    httpResponse.messages.push("Admin updated successfully");
   } else {
-    httpResponse.success = false;
-    httpResponse.messages.push("You are not allowed to do so..!");
-    res.status(401);
+    httpResponse.messages = [...item.messages];
+    res.status(item.status);
   }
   return res.send(httpResponse);
 };
@@ -109,22 +104,14 @@ const destroy = async (req, res, next) => {
     data: null,
     messages: [],
   };
-  const token = req?.headers?.authorization.split(" ");
-  const adminId = verifyToken(token[token.length - 1]).id;
-  if (req.params.id == adminId) {
-    const item = await getInstanceById(req.params.id, "Admin");
-    if (item.success) {
-      await item.instance.destroy();
-      httpResponse.messages.push("Admin deleted successfully");
-    } else {
-      res.status(item.status);
-      httpResponse.success = false;
-      httpResponse.messages = [...item.messages];
-    }
+  const item = await getInstanceById(req.params.id, "Admin");
+  if (item.success) {
+    await item.instance.destroy();
+    httpResponse.messages.push("Admin deleted successfully");
   } else {
+    res.status(item.status);
     httpResponse.success = false;
-    httpResponse.messages.push("You are not allowed to do so..!");
-    res.status(401);
+    httpResponse.messages = [...item.messages];
   }
   return res.send(httpResponse);
 };
@@ -134,21 +121,13 @@ const show = async (req, res, next) => {
     data: null,
     messages: [],
   };
-  const token = req?.headers?.authorization.split(" ");
-  const adminId = verifyToken(token[token.length - 1]).id;
-  if (req.params.id == adminId) {
-    const item = await getInstanceById(req.params.id, "Admin");
-    if (item.success) {
-      httpResponse.data = item.instance.dataValues;
-    }
-    httpResponse.success= false
-    httpResponse.messages = [...item.messages];
-    res.status(item.status);
-  } else {
-    httpResponse.success = false;
-    httpResponse.messages.push("You are not allowed to do so..!");
-    res.status(401);
+  const item = await getInstanceById(req.params.id, "Admin");
+  if (item.success) {
+    httpResponse.data = item.instance.dataValues;
   }
+  httpResponse.success = false;
+  httpResponse.messages = [...item.messages];
+  res.status(item.status);
   return res.send(httpResponse);
 };
 

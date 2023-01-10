@@ -1,43 +1,63 @@
 var express = require("express");
-const {store, login, index,update, destroy, show, } = require("../controllers/userController");
-const { nameValidation, emailValidation, passwordValidation,  avatarValdation, } = require("../services/validationService");
-const { isAuth } = require("../middlewares/isAuth");
 var router = express.Router();
-const { upload } = require("../storage/storage");
+const { nameValidation, emailValidation,  passwordValidation, imageValdation, checkUpload} = require("../services/validationService");
+const multer = require("multer");
+const { storage, uploadFilter  } = require("../services/storageService");
+const isAuthorized = require("../middlewares/isAuthorized");
+const isAuthenticated = require("../middlewares/isAuthenticated");
+const { store, login, index, update, destroy, show} = require("../controllers/userController");
+
+const upload = multer({
+  storage: storage,
+  fileFilter: uploadFilter("image"),
+  limits: { fileSize: 1_000_000 },
+}).single("avatar");
 
 router.post(
   "/register",
-  upload.single("avatar"),
-  avatarValdation,
+  (req, res, next) => {
+    upload(req, res, (err) => checkUpload(err, next));
+  },
+  imageValdation,
   nameValidation,
   emailValidation,
   passwordValidation,
   store
 );
 
-router.post("/login", emailValidation, passwordValidation, login);
+router.post("/login", 
+  emailValidation, 
+  passwordValidation, 
+  login);
 
-router.get("/", (res, req, next) => isAuth(res, req, next, ["admin"]), index);
+router.get("/", 
+  isAuthenticated, (req, res, next) =>
+  isAuthorized(req, res, next, {admin:{matchId: false}}), 
+  index);
 
 router.put(
   "/:id",
-  (res, req, next) => isAuth(res, req, next, ["user"]),
-  upload.single("avatar"),
-  avatarValdation,
+  isAuthenticated,
+  (req, res, next) => isAuthorized(req, res, next, { user: { matchId: true } , admin:{matchId: false}}),
+  (req, res, next) => { upload(req, res, (err) => checkUpload(err, next));},
+  imageValdation,
   nameValidation,
   emailValidation,
   passwordValidation,
   update
 );
+
 router.delete(
   "/:id",
-  (res, req, next) => isAuth(res, req, next, ["admin", "user"]),
+  isAuthenticated,
+  (req, res, next) => isAuthorized(req, res, next, { user: { matchId: true } , admin:{matchId: false}}),
   destroy
 );
 
 router.get(
   "/:id",
-  (res, req, next) => isAuth(res, req, next, ["admin", "user"]),
+  isAuthenticated,
+  (req, res, next) => isAuthorized(req, res, next, { user: { matchId: true } , admin:{matchId: false}}),
   show
 );
 

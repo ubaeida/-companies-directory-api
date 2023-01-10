@@ -77,28 +77,20 @@ const update = async (req, res, next) => {
     data: null,
     messages: [],
   };
-  const token = req?.headers?.authorization.split(" ");
-  const userId = verifyToken(token[token.length - 1]).id;
-  if (req.params.id == userId) {
-    const item = await getInstanceById(req.params.id, "User");
-    if (item.success) {
-      await item.instance.update({
-        name: req.body.name,
-        email: req.body.email,
-        password: hashPassword(req.body.password),
-        avatar: req?.file?.filename,
-        bio: req.body.bio,
-      });
-      httpResponse.data = userTransformer(item.instance);
-      httpResponse.messages.push("User updated successfully");
-    } else {
-      httpResponse.messages = [...item.messages];
-      res.status(item.status);
-    }
+  const item = await getInstanceById(req.params.id, "User");
+  if (item.success) {
+    await item.instance.update({
+      name: req.body.name,
+      email: req.body.email,
+      password: hashPassword(req.body.password),
+      avatar: req?.file?.filename,
+      bio: req.body.bio,
+    });
+    httpResponse.data = userTransformer(item.instance);
+    httpResponse.messages.push("User updated successfully");
   } else {
-    httpResponse.success = false;
-    httpResponse.messages.push("You are not allowed to do so..!");
-    res.status(401);
+    httpResponse.messages = [...item.messages];
+    res.status(item.status);
   }
   return res.send(httpResponse);
 };
@@ -109,22 +101,14 @@ const destroy = async (req, res, next) => {
     data: null,
     messages: [],
   };
-  const token = req?.headers?.authorization.split(" ");
-  const user = verifyToken(token[token.length - 1]);
-  if (req.params.id == user.id || user.type == "admin") {
-    const item = await getInstanceById(req.params.id, "User");
-    if (item.success) {
-      await item.instance.destroy();
-      httpResponse.messages.push("User deleted successfully");
-    } else {
-      res.status(item.status);
-      httpResponse.success = false;
-      httpResponse.messages = [...item.messages];
-    }
+  const item = await getInstanceById(req.params.id, "User");
+  if (item.success) {
+    await item.instance.destroy();
+    httpResponse.messages.push("User deleted successfully");
   } else {
+    res.status(item.status);
     httpResponse.success = false;
-    httpResponse.messages.push("You are not allowed to do so..!");
-    res.status(401);
+    httpResponse.messages = [...item.messages];
   }
   return res.send(httpResponse);
 };
@@ -135,23 +119,16 @@ const show = async (req, res, next) => {
     data: null,
     messages: [],
   };
-  const token = req?.headers?.authorization.split(" ");
-  const user = verifyToken(token[token.length - 1]);
-  if (req.params.id == user.id || user.type == "admin") {
-    const item = await getInstanceById(req.params.id, "User");
-    if (item.success) {
-      httpResponse.data = item.instance.dataValues;
-    }
-    httpResponse.success = false;
-    httpResponse.messages = [...item.messages];
-    res.status(item.status);
-  } else {
-    httpResponse.success = false;
-    httpResponse.messages.push("You are not allowed to do so..!");
-    res.status(401);
+  const item = await getInstanceById(req.params.id, "User");
+  if (item.success) {
+    httpResponse.data = userTransformer( item.instance.dataValues);
   }
+  httpResponse.success = false;
+  httpResponse.messages = [...item.messages];
+  res.status(item.status);
   return res.send(httpResponse);
 };
+
 module.exports = {
   store,
   login,

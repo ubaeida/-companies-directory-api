@@ -1,32 +1,66 @@
 var express = require("express");
 var router = express.Router();
 const {
+  nameValidation,
+  imageValdation,
+  checkUpload,
+  descriptionValdation,
+} = require("../services/validationService");
+const multer = require("multer");
+const { storage, uploadFilter } = require("../services/storageService");
+const isAuthorized = require("../middlewares/isAuthorized");
+const isAuthenticated = require("../middlewares/isAuthenticated");
+const {
   store,
   index,
   update,
   destroy,
   show,
 } = require("../controllers/categoryController");
-const { upload } = require("../storage/storage");
-const { checkSchema, body } = require("express-validator");
-const { isAuth } = require("../middlewares/isAuth");
 
-router.post( "/", (req, res, next) => isAuth(req, res, next, ["admin"]), upload.single("icon"),
-  checkSchema({
-    icon: {
-      custom: {
-        options: (value, { req, path }) => !!req.file,
-        errorMessage: "You should upload a valid image file up to 1Mb",
-      },
-    },
-  }),
-  body("name").isLength({ min: 2, max: 20 }),
-  body("description").isLength({ min: 2, max: 20 }),
+const upload = multer({
+  storage: storage,
+  fileFilter: uploadFilter("image"),
+  limits: { fileSize: 1_000_000 },
+}).single("icon");
+
+router.post(
+  "/",
+  isAuthenticated,
+  (req, res, next) =>
+    isAuthorized(req, res, next, { admin: { matchId: false } }),
+  (req, res, next) => {
+    upload(req, res, (err) => checkUpload(err, next));
+  },
+  imageValdation,
+  nameValidation,
+  descriptionValdation,
   store
 );
-router.get("/",(req, res, next) => isAuth(req, res, next, ["all"]) ,index);
-router.put("/:id", (req, res, next) => isAuth(req, res, next, ["admin"])  ,update);
-router.delete("/:id", (req, res, next) => isAuth(req, res, next, ["admin"])  ,destroy);
-router.get("/:id",(req, res, next) => isAuth(req, res, next, ["all"]),show);
+router.get("/", isAuthenticated, index);
+
+router.put(
+  "/:id",
+  isAuthenticated,
+  (req, res, next) =>
+    isAuthorized(req, res, next, { admin: { matchId: false } }),
+  (req, res, next) => {
+    upload(req, res, (err) => checkUpload(err, next));
+  },
+  imageValdation,
+  nameValidation,
+  descriptionValdation,
+  update
+);
+
+router.delete(
+  "/:id",
+  isAuthenticated,
+  (req, res, next) =>
+    isAuthorized(req, res, next, { admin: { matchId: false } }),
+  destroy
+);
+
+router.get("/:id", isAuthenticated, show);
 
 module.exports = router;
